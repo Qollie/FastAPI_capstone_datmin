@@ -8,7 +8,12 @@ from zoneinfo import ZoneInfo
 with open("expsmooth_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-app = FastAPI()
+app = FastAPI(
+    title="API Prediksi Pemakaian Solar",
+    description="Prediksi jumlah pemakaian solar menggunakan model Exponential Smoothing berdasarkan input jumlah hari ke depan.",
+    version="1.0.0"
+)
+
 
 class InputData(BaseModel):
     steps: int  # jumlah hari ke depan
