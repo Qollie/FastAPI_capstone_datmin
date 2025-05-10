@@ -1,0 +1,36 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+import pickle
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+# Load model
+with open("expsmooth_model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+app = FastAPI()
+
+class InputData(BaseModel):
+    steps: int  # jumlah hari ke depan
+
+@app.post("/predict")
+def predict(data: InputData):
+    forecast = model.forecast(data.steps)
+    
+    # Ambil tanggal sekarang dengan zona waktu Samarinda (WITA / Asia/Makassar)
+    current_date = datetime.now(ZoneInfo("Asia/Makassar"))
+    
+    prediction_list = []
+    for i, value in enumerate(forecast):
+        forecast_date = current_date + timedelta(days=i)
+        formatted_date = forecast_date.strftime("%Y-%m-%d")
+        prediction_list.append(f"Prediksi pada {formatted_date} : {round(value, 2)} KL")
+    
+    total = round(sum(forecast), 2)
+    total_text = f"Total prediksi selama {data.steps} hari adalah: {total} KL"
+    
+    prediction_list.append(total_text)
+
+    return {
+        "prediction": prediction_list
+    }
